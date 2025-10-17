@@ -1,4 +1,4 @@
-# HypeAI-Flow
+# AI-Flow
 
 **HypeAI-Flow** is a next-generation, low-code, AI-powered workflow automation platform designed to help teams and enterprises define, manage, and scale business processes with minimal effort.
 
