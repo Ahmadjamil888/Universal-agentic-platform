@@ -47,7 +47,7 @@
 1. **Clone the repository**
 
    ```
-   git clone https://github.com/icelaterdc/AI-Flow.git
+   git clone https://github.com/nuekkis/AI-Flow.git
    cd AI-Flow
    ```
 
