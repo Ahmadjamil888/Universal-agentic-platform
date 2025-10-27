@@ -2,8 +2,8 @@ import Stripe from 'stripe';
 import { NextResponse } from 'next/server';
 import { createServerClient } from '@/lib/supabase';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-  apiVersion: '2022-11-15',
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+  apiVersion: '2025-09-30.clover',
 });
 
 export async function POST(request: Request) {

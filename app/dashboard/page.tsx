@@ -42,7 +42,7 @@ export default function DashboardPage() {
         const orgId = member.organization_id
         const isAdmin = member.role === 'owner' || member.role === 'admin'
 
-        let agentQuery = supabase
+        let agentQuery: any = supabase
           .from('agents')
           .select('id', { count: 'exact' })
           .eq('organization_id', orgId)
