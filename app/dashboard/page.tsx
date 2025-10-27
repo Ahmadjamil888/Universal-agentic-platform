@@ -17,6 +17,8 @@ export default function DashboardPage() {
     tasksCompleted: 0,
     timeSaved: 0
   })
+  const [departments, setDepartments] = useState<any[]>([])
+  const [userDepartments, setUserDepartments] = useState<any[]>([])
   const router = useRouter()
   const supabase = createClientComponentClient()
 
@@ -56,13 +58,33 @@ export default function DashboardPage() {
         .select('id', { count: 'exact' })
         .eq('organization_id', orgId)
 
-      // If not admin, only show agents and workflows for user's departments
+      // If not admin, check if they should be redirected to department view
       if (!isAdmin) {
         const { data: userDepts } = await supabase
           .from('department_members')
           .select('department_id')
           .eq('user_id', user.id)
 
+        if (userDepts && userDepts.length === 1) {
+          // Redirect to department view if they only have one department
+          router.push(`/departments/${userDepts[0].department_id}`)
+          return
+        }
+
+        setUserDepartments(userDepts || [])
+
+        // Load full department data for display
+        if (userDepts && userDepts.length > 0) {
+          const deptIds = userDepts.map(d => d.department_id)
+          const { data: deptDetails } = await supabase
+            .from('departments')
+            .select('id, name, description')
+            .in('id', deptIds)
+
+          setUserDepartments(deptDetails || [])
+        }
+
+        // If not admin, only show agents and workflows for user's departments
         if (userDepts && userDepts.length > 0) {
           const deptIds = userDepts.map(d => d.department_id)
 
@@ -74,6 +96,15 @@ export default function DashboardPage() {
           workflowQuery = workflowQuery
             .eq('organization_id', orgId) // Keep org-level workflows for now
         }
+      } else {
+        // Load departments for admins
+        const { data: depts } = await supabase
+          .from('departments')
+          .select('id, name, description')
+          .eq('organization_id', orgId)
+          .limit(6) // Show up to 6 departments
+
+        setDepartments(depts || [])
       }
 
       const [agentResult, workflowResult] = await Promise.all([
@@ -172,6 +203,59 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
         </div>
+
+        {/* Departments Section for Admins */}
+        {departments.length > 0 && (
+          <div className="mb-8">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-semibold text-gray-900">Departments</h2>
+              <Link href="/departments">
+                <Button variant="outline" size="sm">View All</Button>
+              </Link>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {departments.slice(0, 6).map((department) => (
+                <Card key={department.id} className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => router.push(`/departments/${department.id}`)}>
+                  <CardContent className="p-4">
+                    <div className="flex items-center space-x-3">
+                      <div className="h-10 w-10 bg-primary/10 rounded-lg flex items-center justify-center">
+                        <Building2 className="h-5 w-5 text-primary" />
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="font-medium text-gray-900">{department.name}</h3>
+                        <p className="text-sm text-gray-600 line-clamp-1">{department.description || 'No description'}</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Departments Section for Members with Multiple Departments */}
+        {userDepartments.length > 1 && (
+          <div className="mb-8">
+            <h2 className="text-xl font-semibold text-gray-900 mb-4">My Departments</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {userDepartments.map((dept) => (
+                <Card key={dept.id} className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => router.push(`/departments/${dept.id}`)}>
+                  <CardContent className="p-4">
+                    <div className="flex items-center space-x-3">
+                      <div className="h-10 w-10 bg-primary/10 rounded-lg flex items-center justify-center">
+                        <Building2 className="h-5 w-5 text-primary" />
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="font-medium text-gray-900">{dept.name}</h3>
+                        <p className="text-sm text-gray-600">Click to view department</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Main Content Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
