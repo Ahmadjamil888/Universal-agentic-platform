@@ -109,7 +109,7 @@ export default function DashboardPage() {
               </Button>
             </Link>
             <Link href="/workflows/create">
-              <Button variant="outline" className="flex items-center space-x-2">
+              <Button className="flex items-center space-x-2">
                 <Zap className="h-4 w-4" />
                 <span>New Workflow</span>
               </Button>
