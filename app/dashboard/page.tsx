@@ -220,7 +220,7 @@ export default function DashboardPage() {
 
               <div className="mt-4">
                 <Link href="/analytics">
-                  <Button variant="outline" className="w-full">
+                  <Button className="w-full">
                     View All Analytics
                   </Button>
                 </Link>
