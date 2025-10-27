@@ -19,7 +19,7 @@ interface Department {
   head_user?: {
     full_name: string | null
     email: string
-  }
+  } | null
   member_count?: number
   agent_count?: number
 }
@@ -137,7 +137,7 @@ export default function DepartmentDetailPage() {
 
       setDepartment({
         ...dept,
-        head_user: dept.profiles,
+        head_user: dept.profiles?.[0] || null,
         member_count: memberCount || 0,
         agent_count: agentCount || 0
       })
