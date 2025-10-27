@@ -37,53 +37,56 @@ export default function DashboardPage() {
         .eq('user_id', user.id)
         .single()
 
-      if (member) {
-        // Get stats based on user's access level
-        const orgId = member.organization_id
-        const isAdmin = member.role === 'owner' || member.role === 'admin'
-
-        let agentQuery: any = supabase
-          .from('agents')
-          .select('id', { count: 'exact' })
-          .eq('organization_id', orgId)
-
-        let workflowQuery = supabase
-          .from('workflows')
-          .select('id', { count: 'exact' })
-          .eq('organization_id', orgId)
-
-        // If not admin, only show agents and workflows for user's departments
-        if (!isAdmin) {
-          const { data: userDepts } = await supabase
-            .from('department_members')
-            .select('department_id')
-            .eq('user_id', user.id)
-
-          if (userDepts && userDepts.length > 0) {
-            const deptIds = userDepts.map(d => d.department_id)
-
-            agentQuery = supabase
-              .from('agent_department_associations')
-              .select('agent_id', { count: 'exact' })
-              .in('department_id', deptIds)
-
-            workflowQuery = workflowQuery
-              .eq('organization_id', orgId) // Keep org-level workflows for now
-          }
-        }
-
-        const [agentResult, workflowResult] = await Promise.all([
-          agentQuery,
-          workflowQuery
-        ])
-
-        setStats({
-          activeAgents: agentResult.count || 0,
-          workflows: workflowResult.count || 0,
-          tasksCompleted: 1247, // This would come from ai_usage_logs
-          timeSaved: 42 // This would be calculated
-        })
+      if (!member) {
+        router.push('/organization/setup')
+        return
       }
+
+      // Get stats based on user's access level
+      const orgId = member.organization_id
+      const isAdmin = member.role === 'owner' || member.role === 'admin'
+
+      let agentQuery: any = supabase
+        .from('agents')
+        .select('id', { count: 'exact' })
+        .eq('organization_id', orgId)
+
+      let workflowQuery = supabase
+        .from('workflows')
+        .select('id', { count: 'exact' })
+        .eq('organization_id', orgId)
+
+      // If not admin, only show agents and workflows for user's departments
+      if (!isAdmin) {
+        const { data: userDepts } = await supabase
+          .from('department_members')
+          .select('department_id')
+          .eq('user_id', user.id)
+
+        if (userDepts && userDepts.length > 0) {
+          const deptIds = userDepts.map(d => d.department_id)
+
+          agentQuery = supabase
+            .from('agent_department_associations')
+            .select('agent_id', { count: 'exact' })
+            .in('department_id', deptIds)
+
+          workflowQuery = workflowQuery
+            .eq('organization_id', orgId) // Keep org-level workflows for now
+        }
+      }
+
+      const [agentResult, workflowResult] = await Promise.all([
+        agentQuery,
+        workflowQuery
+      ])
+
+      setStats({
+        activeAgents: agentResult.count || 0,
+        workflows: workflowResult.count || 0,
+        tasksCompleted: 1247, // This would come from ai_usage_logs
+        timeSaved: 42 // This would be calculated
+      })
     }
 
     getUserAndStats()
